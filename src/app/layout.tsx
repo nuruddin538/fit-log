@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import FitLogProvider from "@/context/FitLogContext";
 import ToastProvider from "@/components/ToastProvider";
+import Footer from "@/components/Footer";
 
 const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -33,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <FitLogProvider>
           <Navbar></Navbar>
           <main>{children}</main>
-          {/* <Footer /> */}
+          <Footer />
           <ToastProvider />
         </FitLogProvider>
       </body>

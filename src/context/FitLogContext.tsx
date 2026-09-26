@@ -21,24 +21,6 @@ interface IFitLogContext {
   hydrated: boolean;
 }
 
-// // Get data from localStorage
-// const getStoredData = <T,>(key: string, defaultValue: T): T => {
-//   if (typeof window === "undefined") {
-//     return defaultValue;
-//   }
-//   try {
-//     const storedData = localStorage.getItem(key);
-
-//     if (!storedData) {
-//       return defaultValue;
-//     }
-//     return JSON.parse(storedData) as T;
-//   } catch (error) {
-//     console.error(`Failed to load ${key}:`, error);
-//     return defaultValue;
-//   }
-// };
-
 const FitLogContext = createContext<IFitLogContext>({
   plan: [],
   setPlan: () => {},
