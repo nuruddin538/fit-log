@@ -1,26 +1,37 @@
 import { IWorkout } from "@/types/workout";
 
-const API_URL = "https://api.abcz.workers.dev/api/fitlog";
+const API_URL = "https://api.api-store.workers.dev/api/fitlog";
 
 export const getWorkouts = async (): Promise<IWorkout[]> => {
-  const response = await fetch(API_URL, {
-    cache: "no-store",
-  });
-  if (!response.ok) {
-    throw new Error("Failed to fetch workouts");
+  try {
+    const response = await fetch(API_URL, {
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+    const data: IWorkout[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch workouts: ", error);
+    throw error;
   }
-  return response.json();
 };
 
 export const getWorkout = async (id: string): Promise<IWorkout | null> => {
-  const response = await fetch(`${API_URL}/${id}`, {
-    cache: "no-cache",
-  });
-  if (response.status === 404) {
-    return null;
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      cache: "no-store",
+    });
+    if (response.status === 404) {
+      return null;
+    }
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error(`Failed to fetch workout ${id}:`, error);
+    throw error;
   }
-  if (!response.ok) {
-    throw new Error("Failed to fetch workout");
-  }
-  return response.json();
 };

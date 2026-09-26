@@ -18,27 +18,28 @@ interface IFitLogContext {
 
   doneIds: number[];
   setDoneIds: React.Dispatch<React.SetStateAction<number[]>>;
+  hydrated: boolean;
 }
 
-// Get data from localStorage
-const getStoredData = <T,>(key: string, defaultValue: T): T => {
-  if (typeof window === "undefined") {
-    return defaultValue;
-  }
-  try {
-    const storedData = localStorage.getItem(key);
+// // Get data from localStorage
+// const getStoredData = <T,>(key: string, defaultValue: T): T => {
+//   if (typeof window === "undefined") {
+//     return defaultValue;
+//   }
+//   try {
+//     const storedData = localStorage.getItem(key);
 
-    if (!storedData) {
-      return defaultValue;
-    }
-    return JSON.parse(storedData) as T;
-  } catch (error) {
-    console.error(`Failed to load ${key}:`, error);
-    return defaultValue;
-  }
-};
+//     if (!storedData) {
+//       return defaultValue;
+//     }
+//     return JSON.parse(storedData) as T;
+//   } catch (error) {
+//     console.error(`Failed to load ${key}:`, error);
+//     return defaultValue;
+//   }
+// };
 
-export const FitLogContext = createContext<IFitLogContext>({
+const FitLogContext = createContext<IFitLogContext>({
   plan: [],
   setPlan: () => {},
 
@@ -47,37 +48,56 @@ export const FitLogContext = createContext<IFitLogContext>({
 
   doneIds: [],
   setDoneIds: () => {},
+  hydrated: false,
 });
 
 const FitLogProvider = ({ children }: { children: ReactNode }) => {
-  const [plan, setPlan] = useState<IWorkout[]>(() =>
-    getStoredData<IWorkout[]>("fitlog-plan", [])
-  );
-  const [saved, setSaved] = useState<IWorkout[]>(() =>
-    getStoredData<IWorkout[]>("fitlog-saved", [])
-  );
-  const [doneIds, setDoneIds] = useState<number[]>(() =>
-    getStoredData<number[]>("fitlog-done", [])
-  );
+  const [plan, setPlan] = useState<IWorkout[]>([]);
+  const [saved, setSaved] = useState<IWorkout[]>([]);
+  const [doneIds, setDoneIds] = useState<number[]>([]);
 
-  // Save plan
+  const [hydrated, setHydrated] = useState(false);
+
+  // load localStorage after client hydration
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedPlan = localStorage.getItem("fitlog-plan");
+    const storedSaved = localStorage.getItem("fitlog-saved");
+    const storedDone = localStorage.getItem("fitlog-done");
+
+    const nextPlan = storedPlan ? (JSON.parse(storedPlan) as IWorkout[]) : [];
+    const nextSaved = storedSaved
+      ? (JSON.parse(storedSaved) as IWorkout[])
+      : [];
+    const nextDoneIds = storedDone ? (JSON.parse(storedDone) as number[]) : [];
+
+    setPlan(nextPlan);
+    setSaved(nextSaved);
+    setDoneIds(nextDoneIds);
+    setHydrated(true);
+  }, []);
+
+  // save plan
+  useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem("fitlog-plan", JSON.stringify(plan));
-  }, [plan]);
+  }, [plan, hydrated]);
 
-  // Save saved workouts
+  // save saved workouts
   useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem("fitlog-saved", JSON.stringify(saved));
-  }, [saved]);
+  }, [saved, hydrated]);
 
-  // Save completed workouts
+  // save completed workouts
   useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem("fitlog-done", JSON.stringify(doneIds));
-  }, [doneIds]);
+  }, [doneIds, hydrated]);
 
   return (
     <FitLogContext.Provider
-      value={{ plan, setPlan, saved, setSaved, doneIds, setDoneIds }}
+      value={{ plan, setPlan, saved, setSaved, doneIds, setDoneIds, hydrated }}
     >
       {children}
     </FitLogContext.Provider>

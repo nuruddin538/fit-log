@@ -12,7 +12,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { plan, saved } = useFitLog();
+  const { plan, saved, hydrated } = useFitLog();
 
   const navLinks = [
     { name: "Workouts", href: "/" },
@@ -70,7 +70,7 @@ export default function Navbar() {
           >
             Plan
             <span className="bg-[#111111] text-[#ccff00] w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-sm">
-              {plan.length}
+              {hydrated ? plan.length : 0}
             </span>
           </Link>
           {/* Saved Badge */}
@@ -80,7 +80,7 @@ export default function Navbar() {
           >
             Saved
             <span className="bg-white/20 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs">
-              {saved.length}
+              {hydrated ? saved.length : 0}
             </span>
           </Link>
         </div>
