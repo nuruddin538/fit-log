@@ -1,22 +1,46 @@
 "use client";
 
+import { useFitLog } from "@/context/FitLogContext";
 import { IWorkout } from "@/types/workout";
-import {
-  Bookmark,
-  CalendarPlus,
-  Clock3,
-  Flame,
-  Gauge,
-  Plus,
-  Star,
-} from "lucide-react";
+import { Bookmark, CalendarPlus } from "lucide-react";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 interface WorkoutDetailsProps {
   workout: IWorkout;
 }
 
 const WorkoutDetails = ({ workout }: WorkoutDetailsProps) => {
+  const { plan, setPlan, saved, setSaved } = useFitLog();
+
+  // Add workout to Today's Plan
+  const handleAddToPlan = () => {
+    // Prevent duplicate workout
+    const alreadyAdded = plan.some((item) => item.id === workout.id);
+
+    if (alreadyAdded) {
+      toast.info("Workout is already in today's plan.");
+      return;
+    }
+    // Maximum 5 workouts
+    if (plan.length >= 5) {
+      toast.warning("Today's plan can contain maximum 5 workouts.");
+      return;
+    }
+    setPlan((currentPlan) => [...currentPlan, workout]);
+    toast.success("Added to today's plan");
+  };
+  // Save Workout
+  const handleSaveWorkout = () => {
+    // Prevent duplicate saved workout
+    const alreadySaved = saved.some((item) => item.id === workout.id);
+    if (alreadySaved) {
+      toast.info("Workout is already saved");
+      return;
+    }
+    setSaved((currentSave) => [...currentSave, workout]);
+    toast.success("Saved for later");
+  };
   return (
     <main className="min-h-screen bg-[#0b0d0c] text-white">
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
@@ -159,6 +183,7 @@ const WorkoutDetails = ({ workout }: WorkoutDetailsProps) => {
               {/* Add To Plan */}
               <button
                 type="button"
+                onClick={handleAddToPlan}
                 className="flex cursor-pointer min-h-12 items-center justify-center gap-2 rounded-xl bg-[#ccff00] px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:bg-[#d8ff4d] active:scale-[0.98]"
               >
                 <CalendarPlus size={18} strokeWidth={3} />
@@ -167,6 +192,7 @@ const WorkoutDetails = ({ workout }: WorkoutDetailsProps) => {
               {/* Save For Later */}
               <button
                 type="button"
+                onClick={handleSaveWorkout}
                 className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-[#ccff00]/50 hover:text-[#ccff00] active:scale-[0.98]"
               >
                 <Bookmark size={18} />
