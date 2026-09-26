@@ -1,5 +1,5 @@
 import { IWorkout } from "@/types/workout";
-import { Clock3, Dumbbell, Flame, Star } from "lucide-react";
+import { Clock3, Flame, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
