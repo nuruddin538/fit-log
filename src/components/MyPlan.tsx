@@ -138,7 +138,7 @@ const MyPlan = () => {
               onChange={(event) => setSortBy(event.target.value as sortBy)}
               className="h-10 w-full rounded-xl border border-white/20 bg-transparent px-3 text-sm text-white outline-none transition focus:border-[#ccff00]"
             >
-              <option value="calories" className="bg-[#181b20]">
+              <option value="duration" className="bg-[#181b20]">
                 Duration
               </option>
               <option value="calories" className="bg-[#181b20]">
