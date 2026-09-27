@@ -4,17 +4,15 @@ FitLog is a modern and responsive workout library web application built with Nex
 
 ## 🌐 Live Demo
 
-🔗 [Live Site](#)
+🔗 [Live Site](https://fit-log-ten-sooty.vercel.app)
 
 ## 📂 GitHub Repository
 
-🔗 [GitHub Repository](https://github.com/your-username/your-repository)
+🔗 [GitHub Repository](https://github.com/nuruddin538/fit-log.git)
 
 ## 📸 Project Preview
 
-<!-- Add your project screenshot here -->
-
-![DevStack Preview](./src/assets/preview.png)
+![FitLog Preview](./src/assets/preview.png)
 
 ## 🚀 Technologies Used
 
