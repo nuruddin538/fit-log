@@ -13,17 +13,21 @@ interface WorkoutDetailsProps {
 const WorkoutDetails = ({ workout }: WorkoutDetailsProps) => {
   const { plan, setPlan, saved, setSaved } = useFitLog();
 
+  const isAlreadyAdded = plan.some((item) => item.id === workout.id);
+  const isPlanFull = plan.length >= 5;
+
+  const isAlreadySaved = saved.some((item) => item.id === workout.id);
+
   // Add workout to Today's Plan
   const handleAddToPlan = () => {
     // Prevent duplicate workout
-    const alreadyAdded = plan.some((item) => item.id === workout.id);
 
-    if (alreadyAdded) {
+    if (isAlreadyAdded) {
       toast.info("Workout is already in today's plan.");
       return;
     }
     // Maximum 5 workouts
-    if (plan.length >= 5) {
+    if (isPlanFull) {
       toast.warning("Today's plan can contain maximum 5 workouts.");
       return;
     }
@@ -33,8 +37,8 @@ const WorkoutDetails = ({ workout }: WorkoutDetailsProps) => {
   // Save Workout
   const handleSaveWorkout = () => {
     // Prevent duplicate saved workout
-    const alreadySaved = saved.some((item) => item.id === workout.id);
-    if (alreadySaved) {
+
+    if (isAlreadySaved) {
       toast.info("Workout is already saved");
       return;
     }

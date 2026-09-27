@@ -1,11 +1,11 @@
 "use client";
 
 import { useFitLog } from "@/context/FitLogContext";
-import { ListCheck, Timer } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import EmptyState from "./EmptyState";
 import PlanCard from "./PlanCard";
+import { ChevronDown, Search } from "lucide-react";
 
 type ActiveTab = "plan" | "saved";
 type sortBy = "duration" | "calories" | "rating";
@@ -15,6 +15,7 @@ const MyPlan = () => {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("plan");
   const [sortBy, setSortBy] = useState<sortBy>("duration");
+  const [searchQuery, setSearchQuery] = useState("");
 
   //   Today's Plan metrics
   const totalExercises = plan.length;
@@ -25,11 +26,27 @@ const MyPlan = () => {
   const totalCalories = useMemo(() => {
     return plan.reduce((total, workout) => total + workout.caloriesBurned, 0);
   }, [plan]);
+
   //   current lsit based on active tab
   const currentWorkouts = useMemo(() => {
     const workouts = activeTab === "plan" ? [...plan] : [...saved];
 
-    return workouts.sort((a, b) => {
+    const query = searchQuery.trim().toLowerCase();
+    // search by workout name, muscle group, or equipment
+    const filteredWorkouts = workouts.filter((workout) => {
+      if (!query) return true;
+      const searchableText = [
+        workout.name,
+        workout.equipment,
+        ...workout.muscleGroups,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return searchableText.includes(query);
+    });
+
+    // sort
+    return filteredWorkouts.sort((a, b) => {
       if (sortBy === "duration") {
         return a.duration - b.duration;
       }
@@ -38,28 +55,51 @@ const MyPlan = () => {
       }
       return b.rating - a.rating;
     });
-  }, [activeTab, plan, saved, sortBy]);
+  }, [activeTab, plan, saved, sortBy, searchQuery]);
 
   const handleRemove = (id: number) => {
+    const workout =
+      activeTab === "plan"
+        ? plan.find((item) => item.id === id)
+        : saved.find((item) => item.id === id);
+
     if (activeTab === "plan") {
-      setPlan((currentPlan) =>
-        currentPlan.filter((workout) => workout.id !== id)
+      setPlan((currentPlan) => currentPlan.filter((item) => item.id !== id));
+
+      // remove stale done ID
+      setDoneIds((currentIds) => currentIds.filter((doneId) => doneId !== id));
+      toast.success(
+        workout
+          ? `${workout.name} romved from today's plan.`
+          : "Workout removed from today's plan"
       );
-      toast.success("Workout removed from today's plan");
     } else {
-      setSaved((currentSaved) =>
-        currentSaved.filter((workout) => workout.id !== id)
+      setSaved((currentSaved) => currentSaved.filter((item) => item.id !== id));
+      toast.success(
+        workout
+          ? `${workout.name} removed from saved`
+          : "Workout removed from saved"
       );
-      toast.success("Workout removed from saved");
     }
   };
   const handleMarkDone = (id: number) => {
+    const workout = plan.find((item) => item.id === id);
     if (doneIds.includes(id)) {
-      toast.info("Workout is already marked as done.");
+      toast.info(
+        workout
+          ? `${workout.name} is already marks as done`
+          : "Workout is already marked as done."
+      );
       return;
     }
     setDoneIds((currentIds) => [...currentIds, id]);
-    toast.success("Workout marked as done");
+    toast.success(
+      workout ? `${workout.name} marked as done` : "Workout marked as done"
+    );
+
+    const handleClearSearch = () => {
+      setSearchQuery("");
+    };
   };
   return (
     <main className="min-h-screen bg-[#0b0d0c] text-white">
@@ -98,7 +138,7 @@ const MyPlan = () => {
           </div>
         </div>
         {/* Tabs + Sort */}
-        <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mt-10">
           {/* Tabs */}
           <div className="flex w-fit rounded-2xl bg-[#181b20] p-1">
             <button
@@ -124,49 +164,80 @@ const MyPlan = () => {
               Saved
             </button>
           </div>
-          {/* Sort */}
-          <div className="w-full sm:w-80">
-            <label
-              htmlFor="sort"
-              className="mb-2 block text-sm font-medium text-white"
-            >
-              Sort By
-            </label>
-            <select
-              id="sort"
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value as sortBy)}
-              className="h-10 w-full rounded-xl border border-white/20 bg-transparent px-3 text-sm text-white outline-none transition focus:border-[#ccff00]"
-            >
-              <option value="duration" className="bg-[#181b20]">
-                Duration
-              </option>
-              <option value="calories" className="bg-[#181b20]">
-                Calories
-              </option>
-              <option value="rating" className="bg-[#181b20]">
-                Rating
-              </option>
-            </select>
-          </div>
-        </div>
-        {/* List */}
-        <div className="mt-8">
-          {currentWorkouts.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="space-y-4">
-              {currentWorkouts.map((workout) => (
-                <PlanCard
-                  key={workout.id}
-                  workout={workout}
-                  isDone={doneIds.includes(workout.id)}
-                  onRemove={handleRemove}
-                  onMarkDone={handleMarkDone}
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+            {/* search */}
+            <div>
+              <label
+                htmlFor="search"
+                className="mb-2 block text-sm font-medium text-white"
+              >
+                Search
+              </label>
+              <div className="relative">
+                <Search
+                  size={19}
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2"
                 />
-              ))}
+                <input
+                  id="search"
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="search by workout name, muscle group or equipment..."
+                  className="h-12 w-full rounded-xl border border-white/15 bg-[#181b20] pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-[#ccff00]"
+                />
+              </div>
             </div>
-          )}
+            {/* Sort */}
+            <div>
+              <label
+                htmlFor="sort"
+                className="mb-2 block text-sm font-medium text-white"
+              >
+                Sort By
+              </label>
+              <div className="relative">
+                <select
+                  id="sort"
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value as sortBy)}
+                  className="h-10 w-full rounded-xl border border-white/20 bg-transparent px-3 text-sm text-white outline-none transition focus:border-[#ccff00]"
+                >
+                  <option value="duration" className="bg-[#181b20]">
+                    Duration
+                  </option>
+                  <option value="calories" className="bg-[#181b20]">
+                    Calories
+                  </option>
+                  <option value="rating" className="bg-[#181b20]">
+                    Rating
+                  </option>
+                </select>
+                <ChevronDown
+                  size={18}
+                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/50"
+                />
+              </div>
+            </div>
+          </div>
+          {/* List */}
+          <div className="mt-8">
+            {currentWorkouts.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <div className="space-y-4">
+                {currentWorkouts.map((workout) => (
+                  <PlanCard
+                    key={workout.id}
+                    workout={workout}
+                    isDone={doneIds.includes(workout.id)}
+                    onRemove={handleRemove}
+                    onMarkDone={handleMarkDone}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </main>
